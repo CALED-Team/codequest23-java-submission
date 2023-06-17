@@ -35,3 +35,6 @@ gradle.lock
 
 # Windows-specific files
 Th
+
+.game_files
+*.zip

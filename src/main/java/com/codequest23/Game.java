@@ -14,6 +14,7 @@ public class Game {
   private JsonElement currentTurnMessage;
 
   public Game() {
+    // Read the tank ID message
     JsonElement tankIdMessage = Comms.readMessage();
     this.tankId =
         tankIdMessage
@@ -25,6 +26,7 @@ public class Game {
     this.currentTurnMessage = null;
     this.objects = new HashMap<>();
 
+    // Read the initialization messages until the end signal is received
     JsonElement nextInitMessage = Comms.readMessage();
     while (!nextInitMessage.isJsonPrimitive()
         || !nextInitMessage.getAsString().equals(Comms.END_INIT_SIGNAL)) {
@@ -34,6 +36,7 @@ public class Game {
               .getAsJsonObject("message")
               .getAsJsonObject("updated_objects");
 
+      // Store the object information in the map
       for (Map.Entry<String, JsonElement> entry : objectInfo.entrySet()) {
         String objectId = entry.getKey();
         JsonObject objectData = entry.getValue().getAsJsonObject();
@@ -50,19 +53,23 @@ public class Game {
     for (JsonObject gameObject : objects.values()) {
       int objectType = gameObject.get("type").getAsInt();
       if (objectType == ObjectTypes.BOUNDARY.getValue()) {
+        // Parse the position array
         double[][] position = GameUtils.parsePosition(gameObject.get("position").getAsJsonArray());
         for (double[] singlePosition : position) {
+          // Update the biggestX and biggestY values
           biggestX = Math.max(biggestX, singlePosition[0]);
           biggestY = Math.max(biggestY, singlePosition[1]);
         }
       }
     }
 
+    // Set the width and height of the map
     this.width = biggestX;
     this.height = biggestY;
   }
 
   public boolean readNextTurnData() {
+    // Read the next turn message
     this.currentTurnMessage = Comms.readMessage();
 
     if (this.currentTurnMessage.isJsonPrimitive()
@@ -98,10 +105,14 @@ public class Game {
   public void respondToTurn() {
     // Write your code here... For demonstration, this bot just shoots randomly every turn.
 
+    // Generate a random shoot angle
     double shootAngle = new Random().nextDouble() * 360;
+
+    // Create the message with the shoot angle
     JsonObject message = new JsonObject();
     message.addProperty("shoot", shootAngle);
 
+    // Send the message
     Comms.postMessage(message);
   }
 }
